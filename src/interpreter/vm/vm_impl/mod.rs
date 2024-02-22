@@ -2,6 +2,9 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
+use self::parser::Parser;
+
+use super::VMCode;
 use super::VM;
 use super::VMData;
 pub mod parser;
@@ -9,13 +12,24 @@ pub mod instruction;
 
 impl VMData {
     pub fn new() -> VMData {
-        VMData { main_stack: Vec::new(), control_stack: Vec::new() }
+        VMData {
+            ip: 0,
+            compile: false,
+            main_stack: Vec::new(),
+            control_stack: Vec::new()
+        }
+    }
+}
+
+impl VMCode {
+    pub fn new() -> VMCode {
+        VMCode { compiled: Vec::new(), interpreted: Vec::new() }
     }
 }
 
 impl VM {
     pub fn new() -> VM {
-        VM { code: Vec::new(), data: VMData::new() }
+        VM { parser: Parser::new(), code: VMCode::new(), data: VMData::new() }
     }
     pub fn load(&mut self, file_name: &str) {
         let path = Path::new(file_name);
@@ -29,15 +43,30 @@ impl VM {
             Err(why) => panic!("couldn't read {}: {}", display, why),
             Ok(fin) => fin,
         };
-        let mut parser = parser::Parser::new(src);
-        parser.parse(self);
+        self.parser.load(src);
+        self.parser.parse(&mut self.code);
     }
     pub fn log(&self) {
-        for i in &self.code {
+        for i in &self.code.interpreted {
             i.log();
         }
     }
     pub fn execute(&mut self) {
-        self.code[0].execute(&mut self.data);
+        while
+            (
+                self.data.compile &&
+                self.data.ip < self.code.compiled.len()
+            ) ||
+            (
+                !self.data.compile &&
+                self.data.ip < self.code.interpreted.len()
+            ) {
+            if (self.data.compile) {
+                self.code.compiled[self.data.ip].execute(&mut self.data);
+            } else {
+                self.code.interpreted[self.data.ip].execute(&mut self.data);
+            }
+            self.data.ip = self.data.ip + 1;
+        }
     }
 }

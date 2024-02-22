@@ -7,10 +7,10 @@ pub struct InstructionPrintString {
 }
 
 impl InstructionPrintString {
-    pub fn new(data: &str) -> InstructionPrintString {
+    pub fn new(data: &Vec<u8>) -> InstructionPrintString {
         InstructionPrintString {
             repr: String::from(".\""),
-            data: String::from(data)
+            data: String::from_utf8_lossy(data).into_owned()
         }
     }
 }
