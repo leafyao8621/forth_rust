@@ -1,5 +1,8 @@
 mod interpreter;
 
 fn main() {
-    let vm = interpreter::VM::new("abc");
+    let mut vm = interpreter::VM::new();
+    vm.load("scripts/a.fs");
+    vm.log();
+    vm.execute();
 }
