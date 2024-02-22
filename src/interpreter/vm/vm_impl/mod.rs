@@ -61,7 +61,7 @@ impl VM {
                 !self.data.compile &&
                 self.data.ip < self.code.interpreted.len()
             ) {
-            if (self.data.compile) {
+            if self.data.compile {
                 self.code.compiled[self.data.ip].execute(&mut self.data);
             } else {
                 self.code.interpreted[self.data.ip].execute(&mut self.data);
